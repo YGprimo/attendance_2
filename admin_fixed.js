@@ -11,26 +11,11 @@ function adminShowAlert(msg, type = '') {
   if (type === 'error') el.classList.add('alert-error');
 }
 
-
 const AUTH_TOKEN_KEY = 'admin_auth_token';
-
-function getAuthHeaders() {
-  const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 async function adminEnsureAuth() {
   const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
   return !!token;
-}
-
-function requireAuth() {
-  const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
-  if (!token) {
-    adminShowAlert('Please login first to use admin actions.', 'error');
-    return false;
-  }
-  return true;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -49,17 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (loginForm) {
-    const togglePassword = document.getElementById('togglePassword');
-    if (togglePassword) {
-      togglePassword.addEventListener('click', () => {
-        const passwordInput = document.getElementById('adminPassword');
-        if (!passwordInput) return;
-        const isHidden = passwordInput.type === 'password';
-        passwordInput.type = isHidden ? 'text' : 'password';
-        togglePassword.textContent = isHidden ? 'Hide' : 'Show';
-      });
-    }
-
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (loginError) loginError.style.display = 'none';
@@ -107,7 +81,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       adminShowAlert('Saving entry...');
       try {
-        // NOTE: still uses Supabase anon for inserts (your server-side protection only covers deletes)
         const res = await fetch(`${SUPABASE_URL}/rest/v1/students`, {
           method: 'POST',
           headers: {
@@ -118,14 +91,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           },
           body: JSON.stringify([{ student_id: studentId, full_name: fullName, course_or_grade: courseUnit }])
         });
-
         if (!res.ok) throw new Error(`Insert failed: ${res.status}`);
-        adminShowAlert('Success: Profile added to active registry.', 'success');
+        adminShowAlert('✅ Success: Profile added to active registry.', 'success');
         form.reset();
         loadLoginHistory();
       } catch (err) {
         console.error(err);
-        adminShowAlert('Entry Rejected. See console for details.', 'error');
+        adminShowAlert('❌ Entry Rejected. See console for details.', 'error');
       }
     });
   }
@@ -167,6 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         tableBody.appendChild(tr);
       });
 
+      // attach delete handlers after render
       tableBody.querySelectorAll('button[data-id]').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
@@ -195,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       rows.forEach(r => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${new Date(r.timestamp).toLocaleString()}</td><td>${r.actor||''}</td><td>${r.action||''}</td><td>${r.details||''}</td>`;
+        tr.innerHTML = `<td>${new Date(r.timestamp).toLocaleString()}</td><td>${r.actor || ''}</td><td>${r.action || ''}</td><td>${r.details || ''}</td>`;
         tableBody.appendChild(tr);
       });
     } catch (err) {
@@ -219,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const d = new Date(l.timestamp);
         const key = `${l.student_id}_${d.toISOString().slice(0, 10)}`;
         if (!map.has(key)) {
-          map.set(key, { student_id: l.student_id, date: d.toISOString().slice(0, 10), first: l.timestamp, last: l.timestamp });
+          map.set(key, { student_id: l.student_id, date: d.toISOString().slice(0, 10), first: l.timestamp, last: l.timestamp, name: l.students ? l.students.full_name : '' });
         } else {
           const obj = map.get(key);
           if (l.timestamp < obj.first) obj.first = l.timestamp;
@@ -253,13 +226,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
       if (!res.ok) throw new Error('Fetch failed');
       const rows = await res.json();
-
       tableBody.innerHTML = '';
       if (!rows || rows.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#94a3b8">No students found.</td></tr>`;
         return;
       }
-
       rows.forEach(r => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${r.student_id}</td><td>${r.full_name}</td><td>${r.course_or_grade || ''}</td><td><button class="btn-refresh" data-student="${r.student_id}">Delete</button></td>`;
@@ -267,7 +238,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       tableBody.querySelectorAll('button[data-student]').forEach(btn => {
-        btn.addEventListener('click', () => window.deleteStudent(btn.getAttribute('data-student')));
+        btn.addEventListener('click', () => {
+          window.deleteStudent(btn.getAttribute('data-student'));
+        });
       });
     } catch (err) {
       console.error(err);
@@ -276,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function logsToCsv(logs) {
-    const headers = ['timestamp','student_id','full_name','course_or_grade'];
+    const headers = ['timestamp', 'student_id', 'full_name', 'course_or_grade'];
     const rows = logs.map(l => {
       const full = l.students ? l.students.full_name : '';
       const course = l.students ? l.students.course_or_grade : '';
@@ -326,7 +299,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabDTR: 'sectionDTR',
     tabStudents: 'sectionStudents'
   };
-
   Object.keys(tabs).forEach(tabId => {
     const btn = document.getElementById(tabId);
     if (!btn) return;
@@ -347,10 +319,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.deleteLog = async function(id) {
     if (!confirm('Delete this log entry?')) return;
     try {
-      if (!requireAuth()) return;
       const res = await fetch('/api/delete-log', {
         method: 'POST',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
       const j = await res.json();
@@ -367,11 +338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     deleteAllBtn.addEventListener('click', async () => {
       if (!confirm('Delete ALL login history? This cannot be undone.')) return;
       try {
-        if (!requireAuth()) return;
-        const res = await fetch('/api/delete-all-logs', {
-          method: 'POST',
-          headers: getAuthHeaders()
-        });
+        const res = await fetch('/api/delete-all-logs', { method: 'POST' });
         const j = await res.json();
         if (!res.ok) throw new Error(j.error || 'Delete all failed');
         loadLoginHistory();
@@ -387,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch('/api/delete-student', {
         method: 'POST',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: studentId })
       });
       const j = await res.json();

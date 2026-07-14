@@ -18,7 +18,15 @@ function loadEnv() {
 const env = Object.assign({}, process.env, loadEnv());
 const SUPABASE_URL = env.SUPABASE_URL || 'https://phplwcompmzeldpmalxz.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || '';
+const ADMIN_USERNAME = env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD || 'Noadmin123';
 const PORT = Number(env.PORT || 3000);
+
+function safeCompare(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
 
 function supabaseHeaders() {
   return {
@@ -78,6 +86,22 @@ const server = http.createServer(async (req, res) => {
       if (!r.ok) return resEnd(r.status, { error: 'Delete student failed' });
       return resEnd(200, { success: true });
     } catch (err) { console.error(err); return resEnd(500, { error: 'Server error' }); }
+  }
+
+  if (req.method === 'POST' && parsed.pathname === '/api/admin-login') {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    try {
+      const { username, password } = JSON.parse(body || '{}');
+      if (!username || !password) return resEnd(400, { error: 'Missing username or password' });
+      if (!safeCompare(username, ADMIN_USERNAME) || !safeCompare(password, ADMIN_PASSWORD)) {
+        return resEnd(401, { error: 'Invalid credentials' });
+      }
+      return resEnd(200, { success: true, token: crypto.randomBytes(24).toString('hex') });
+    } catch (err) {
+      console.error('Invalid admin-login body', err);
+      return resEnd(400, { error: 'Invalid JSON' });
+    }
   }
 
   // default

@@ -13,7 +13,30 @@
     <div class="container">
         <h1>Administrator Control Panel</h1>
 
-        <div class="dashboard-grid">
+        <div id="adminLoginSection" style="margin-bottom:18px;">
+            <div class="panel">
+                <h2>Admin Login</h2>
+                <p style="margin-bottom:14px;font-size:13px;color:#64748b">Access is protected. Sign in to manage students and delete logs.</p>
+                <form id="adminLoginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="adminUsername">Username</label>
+                        <input type="text" id="adminUsername" placeholder="admin" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <div class="password-field">
+                            <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required>
+                            <button type="button" id="togglePassword" class="btn-secondary">Show</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Sign in</button>
+                </form>
+                <div id="adminLoginError" class="alert alert-error" style="display:none;margin-top:12px;"></div>
+                <div class="login-hint">Tip: set <code>ADMIN_USERNAME</code> and <code>ADMIN_PASSWORD</code> in your server environment.</div>
+            </div>
+        </div>
+
+        <div id="adminDashboardSection" class="dashboard-grid" style="display:none;">
             <div class="panel">
                 <h2>Register New Student Profile</h2>
                 <p style="margin-bottom: 15px; font-size: 13px;">Authorized student profiles added here will be granted terminal access rights.</p>
