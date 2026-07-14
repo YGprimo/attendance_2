@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Attendance Terminal</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+    </head>
+    <body>
+        <div class="terminal-wrapper">
+            <div class="card">
+                <h1>Attendance Terminal</h1>
+                <p>Enter your assigned ID to check-in. The system will record a timestamp.</p>
+
+                <form id="checkinForm">
+                    <div class="form-group">
+                        <label for="studentId">Student ID</label>
+                        <input id="studentId" name="studentId" placeholder="e.g., 2026-0001" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Check In</button>
+                </form>
+
+                <div id="status" class="alert" role="status" aria-live="polite"></div>
+
+                <!-- Recent check-ins are admin-only and not shown on terminal -->
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>

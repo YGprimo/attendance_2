@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase Client JavaScript CDN SDK Link -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Administrator Control Panel</h1>
+
+        <div class="dashboard-grid">
+            <div class="panel">
+                <h2>Register New Student Profile</h2>
+                <p style="margin-bottom: 15px; font-size: 13px;">Authorized student profiles added here will be granted terminal access rights.</p>
+                
+                <form id="registrationForm">
+                    <div class="form-group">
+                        <label for="regId">Assigned ID Number</label>
+                        <input type="text" id="regId" placeholder="e.g., 2026-0001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regName">Full Full Name</label>
+                        <input type="text" id="regName" placeholder="Firstname Lastname" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regCourse">Course Section / Grade</label>
+                        <input type="text" id="regCourse" placeholder="e.g., BSIT - 1A" required>
+                    </div>
+                    <button type="submit" class="btn-success">Save Profile Record</button>
+                </form>
+                
+                <div id="regAlert" class="alert"></div>
+            </div>
+                        <div class="panel">
+                                <h2>Admin Dashboard</h2>
+                                <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+                                    <button class="btn-refresh" id="tabLoginHistory">Login History</button>
+                                    <button class="btn-refresh" id="tabAudit">Audit</button>
+                                    <button class="btn-refresh" id="tabDTR">DTR</button>
+                                    <button class="btn-refresh" id="tabStudents">Students</button>
+                                </div>
+
+                                <div id="sectionLoginHistory" style="margin-top:16px;">
+                                    <div class="panel-header">
+                                        <h3>Login History</h3>
+                                        <div style="display:flex;gap:8px;align-items:center;">
+                                            <button class="btn-refresh" onclick="loadLoginHistory()">Refresh</button>
+                                            <button class="btn-refresh" id="downloadCsvBtn">⬇Download CSV</button>
+                                            <button class="btn-refresh" id="printBtn">Print</button>
+                                            <button class="btn-refresh" id="deleteAllLogsBtn">Delete All</button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Timestamp Entry</th>
+                                                    <th>Student ID</th>
+                                                    <th>Registered Name</th>
+                                                    <th>Course</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="logsDataTableBody">
+                                                <tr><td colspan="5" style="text-align:center;color:#94a3b8">Loading…</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div id="sectionAudit" style="display:none;margin-top:16px;">
+                                    <h3>Audit</h3>
+                                    <div class="table-responsive">
+                                        <table>
+                                            <thead>
+                                                <tr><th>When</th><th>Actor</th><th>Action</th><th>Details</th></tr>
+                                            </thead>
+                                            <tbody id="auditTableBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8">No audit records.</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div id="sectionDTR" style="display:none;margin-top:16px;">
+                                    <h3>Daily Time Records (Derived)</h3>
+                                    <div class="table-responsive">
+                                        <table>
+                                            <thead>
+                                                <tr><th>Date</th><th>Student ID</th><th>First In</th><th>Last Out</th></tr>
+                                            </thead>
+                                            <tbody id="dtrTableBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8">No DTR data.</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div id="sectionStudents" style="display:none;margin-top:16px;">
+                                    <h3>Students</h3>
+                                    <div class="table-responsive">
+                                        <table>
+                                            <thead>
+                                                <tr><th>Student ID</th><th>Full Name</th><th>Course</th><th>Actions</th></tr>
+                                            </thead>
+                                            <tbody id="studentsTableBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8">Loading…</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                        </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
+ 
