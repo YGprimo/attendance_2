@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.deleteLog = async function(id) {
     if (!confirm('Delete this log entry?')) return;
     try {
-      const res = await fetch('http://localhost:3000/api/delete-log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      const res = await fetch('/api/delete-log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || 'Delete failed');
       loadLoginHistory();
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (deleteAllBtn) deleteAllBtn.addEventListener('click', async () => {
     if (!confirm('Delete ALL login history? This cannot be undone.')) return;
     try {
-      const res = await fetch('http://localhost:3000/api/delete-all-logs', { method: 'POST' });
+      const res = await fetch('/api/delete-all-logs', { method: 'POST' });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || 'Delete all failed');
       loadLoginHistory();
@@ -263,10 +263,16 @@ document.addEventListener('DOMContentLoaded', () => {
   window.deleteStudent = async function(studentId) {
     if (!confirm(`Delete student ${studentId}? This will remove the profile.`)) return;
     try {
-      const res = await fetch('http://localhost:3000/api/delete-student', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ student_id: studentId }) });
+      const res = await fetch('/api/delete-student', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ student_id: studentId }) });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || 'Delete student failed');
       loadStudents();
-    } catch (err) { console.error(err); alert('Failed to delete student'); }
+   } catch (err) {
+
+    console.error(err);
+
+    alert("Delete failed:\n\n" + err.message);
+
+}
   };
 });
